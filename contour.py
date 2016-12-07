@@ -1,8 +1,8 @@
 import vtk
 import os
-os.chdir("vtk_data\dissection")
+os.chdir("D:\Downloads/aneurysm")
 
-filename = "metrics_07.vti"
+filename = "aneurysm.vti"
  
 #read file
 reader = vtk.vtkXMLImageDataReader()

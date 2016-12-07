@@ -5,10 +5,8 @@ import vtk
  
 pl3d = vtk.vtkMultiBlockPLOT3DReader()
  
-xyx_file = "combxyz.bin"
-q_file = "combq.bin"
+xyx_file = "metrics_07.vti"
 pl3d.SetXYZFileName(xyx_file)
-pl3d.SetQFileName(q_file)
 pl3d.SetScalarFunctionNumber(100)
 pl3d.SetVectorFunctionNumber(202)
 pl3d.Update()
