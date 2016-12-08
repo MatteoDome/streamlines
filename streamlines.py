@@ -17,6 +17,11 @@ velocity_field = output.GetPointData().GetArray(0)
 output.GetPointData().SetVectors(velocity_field);
 print("Number of velocity vector components: "+str(velocity_field.GetNumberOfComponents()))
 
+lut = vtk.vtkLookupTable()
+lut.SetHueRange(0.0, 0.0);
+lut.SetSaturationRange(0.0, 0.0);
+lut.SetValueRange(1.0, 0.0);
+
 #get additional info from the file
 origin = output.GetOrigin()
 print(origin)
@@ -63,20 +68,16 @@ streamTube.SetInputArrayToProcess(1, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_P
 streamTube.SetRadius(0.2)
 streamTube.SetNumberOfSides(12)
 streamTube.SetVaryRadiusToVaryRadiusByVector()
+
+##streamtube mapper
 mapStreamTube = vtk.vtkPolyDataMapper()
 mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
+mapStreamTube.SetLookupTable(lut)
+
+##streamtube actor
 streamTubeActor = vtk.vtkActor()
 streamTubeActor.SetMapper(mapStreamTube)
 streamTubeActor.GetProperty().BackfaceCullingOn()
- 
-#streamline mapper
-streamline_mapper = vtk.vtkPolyDataMapper()
-streamline_mapper.SetInputConnection(streamline.GetOutputPort())
-
-#streamline actor
-streamline_actor = vtk.vtkActor()
-streamline_actor.SetMapper(streamline_mapper)
-# streamline_actor.VisibilityOn()
 
 # Setup rendering
 renderer = vtk.vtkRenderer()
