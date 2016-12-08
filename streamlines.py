@@ -4,7 +4,7 @@ import os
 os.chdir("vtk_data\synthetic")
 
 #filename = "metrics_07.vti"
-filename = "image_03.vti"
+filename = "image_04.vti"
  
 #read file
 reader = vtk.vtkXMLImageDataReader()
@@ -84,7 +84,7 @@ renderer = vtk.vtkRenderer()
 
 renderer.AddActor(streamTubeActor)
 renderer.ResetCamera()
-renderer.SetBackground(0.7,.7,1);
+renderer.SetBackground(0.9,.7,1);
  
 renderWindow = vtk.vtkRenderWindow()
 renderWindow.AddRenderer(renderer)
