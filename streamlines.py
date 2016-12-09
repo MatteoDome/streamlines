@@ -1,13 +1,14 @@
 import vtk
 import os
 
-os.chdir("vtk_data\diss1ection")
-# os.chdir("vtk_data\synthetic")
+# os.chdir("vtk_data\disseection")
+os.chdir("vtk_data\synthetic")
 
-filename = "metrics_07.vti"
-# filename = "image_00.vti"
+# filename = "metrics_07.vti"
+filename = "image_00.vti"
 
 grayscale = False;
+black_body_radiation = True;
 dissection_data = False;
 
 #read file
@@ -83,13 +84,31 @@ streamTube.Update()
 mapStreamTube = vtk.vtkPolyDataMapper()
 mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
 
-##LookupTable modification to get grayscale
+##LookupTable modification to get grayscale or black body radiaton
 if grayscale:
 	lut = vtk.vtkLookupTable()
 	lut.SetHueRange(0.0, 0.0);
 	lut.SetSaturationRange(0.0, 0.0);
 	lut.SetValueRange(1.0, 0.0);
 	mapStreamTube.SetLookupTable(lut)
+elif black_body_radiation:
+	cmap = vtk.vtkDiscretizableColorTransferFunction()
+	cmap.SetColorSpaceToRGB()
+	cmap.AddRGBPoint(0.0, 0.0, 0.0, 0.0) # black
+	cmap.AddRGBPoint(0.4, 1.0, 0.9, 0.0) # reddish
+	cmap.AddRGBPoint(0.8, 0.9, 0.9, 0.0) # yellow
+	cmap.AddRGBPoint(1.0, 1.0, 1.0, 1.0) # white
+
+	scalarValues = vtk.vtkFloatArray()
+	scalarValues.SetNumberOfComponents(1)
+	scalarValues.SetNumberOfTuples(256)
+
+	for i in xrange(256):
+		scalarValues.SetTupleValue(i, [i / 255.0])
+
+	cmap.MapScalars(scalarValues, 0, -1)
+
+	mapStreamTube.SetLookupTable(cmap)
 
 ##streamtube actor
 streamTubeActor = vtk.vtkActor()
