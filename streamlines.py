@@ -1,10 +1,11 @@
 import vtk
 import os
-# os.chdir("vtk_data\dissection")
-os.chdir("vtk_data\synthetic")
 
-# filename = "metrics_07.vti"
-filename = "image_04.vti"
+os.chdir("vtk_data\diss1ection")
+# os.chdir("vtk_data\synthetic")
+
+filename = "metrics_07.vti"
+# filename = "image_00.vti"
 
 grayscale = False;
 dissection_data = False;
@@ -19,7 +20,7 @@ output = reader.GetOutput()
 velocity_field = output.GetPointData().GetArray(0)
 output.GetPointData().SetVectors(velocity_field);
 
-#get additional info from the file
+#get info from file
 origin = output.GetOrigin()
 origin_x = origin[0]
 origin_y = origin[1]
@@ -37,7 +38,7 @@ center_x = xmin + (xmax-xmin)/2
 center_y = ymin + (ymax-ymin)/2
 center_z = zmin + (zmax-zmin)/2
 
-#"seeds" defines points where the streamlines are seeded:
+#seed definition
 seeds = vtk.vtkPlaneSource()
 seeds.SetXResolution(8)
 seeds.SetYResolution(8)
@@ -45,7 +46,7 @@ seeds.SetOrigin(center_x, center_y, center_z)
 seeds.SetPoint1(center_x+20, center_y, center_z)
 seeds.SetPoint2(center_x, center_y+20, center_z)
 
-#basic vtk stream line filter
+#streamline filter
 streamline = vtk.vtkStreamLine()
 streamline.SetInput(output)
 streamline.SetSource(seeds.GetOutput())
@@ -57,8 +58,10 @@ streamline.SetIntegrationDirectionToForward()
 streamline.VorticityOn()
 streamline.SpeedScalarsOn()
  
+##streamTube from streamlines
 streamTube = vtk.vtkTubeFilter()
 
+##stripperFilter and cleanFilter are used to get rid of noise in dissection data
 if dissection_data:
 	stripperFilter = vtk.vtkStripper()
 	stripperFilter.SetInputConnection(streamline.GetOutputPort());
@@ -80,6 +83,7 @@ streamTube.Update()
 mapStreamTube = vtk.vtkPolyDataMapper()
 mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
 
+##LookupTable modification to get grayscale
 if grayscale:
 	lut = vtk.vtkLookupTable()
 	lut.SetHueRange(0.0, 0.0);
@@ -92,7 +96,7 @@ streamTubeActor = vtk.vtkActor()
 streamTubeActor.SetMapper(mapStreamTube)
 streamTubeActor.GetProperty().BackfaceCullingOn()
 
-# Setup rendering
+##rendering
 renderer = vtk.vtkRenderer()
 
 renderer.AddActor(streamTubeActor)
