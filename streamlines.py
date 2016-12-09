@@ -1,11 +1,14 @@
 import vtk
 import os
-#os.chdir("vtk_data\dissection")
+# os.chdir("vtk_data\dissection")
 os.chdir("vtk_data\synthetic")
 
-#filename = "metrics_07.vti"
+# filename = "metrics_07.vti"
 filename = "image_04.vti"
- 
+
+grayscale = False;
+dissection_data = False;
+
 #read file
 reader = vtk.vtkXMLImageDataReader()
 reader.SetFileName(filename)
@@ -15,22 +18,14 @@ output = reader.GetOutput()
 # Get vectors
 velocity_field = output.GetPointData().GetArray(0)
 output.GetPointData().SetVectors(velocity_field);
-print("Number of velocity vector components: "+str(velocity_field.GetNumberOfComponents()))
-
-lut = vtk.vtkLookupTable()
-lut.SetHueRange(0.0, 0.0);
-lut.SetSaturationRange(0.0, 0.0);
-lut.SetValueRange(1.0, 0.0);
 
 #get additional info from the file
 origin = output.GetOrigin()
-print(origin)
 origin_x = origin[0]
 origin_y = origin[1]
 origin_z = origin[2]
 
 extent = output.GetExtent()
-print(extent)
 xmin = extent[0]+origin_x
 xmax = extent[1]+origin_x
 ymin = extent[2]+origin_y
@@ -49,7 +44,7 @@ seeds.SetYResolution(8)
 seeds.SetOrigin(center_x, center_y, center_z)
 seeds.SetPoint1(center_x+20, center_y, center_z)
 seeds.SetPoint2(center_x, center_y+20, center_z)
- 
+
 #basic vtk stream line filter
 streamline = vtk.vtkStreamLine()
 streamline.SetInput(output)
@@ -61,18 +56,36 @@ streamline.SetNumberOfThreads(1)
 streamline.SetIntegrationDirectionToForward()
 streamline.VorticityOn()
 streamline.SpeedScalarsOn()
-
+ 
 streamTube = vtk.vtkTubeFilter()
-streamTube.SetInputConnection(streamline.GetOutputPort())
+
+if dissection_data:
+	stripperFilter = vtk.vtkStripper()
+	stripperFilter.SetInputConnection(streamline.GetOutputPort());
+	stripperFilter.Update( );
+	cleanFilter = vtk.vtkCleanPolyData()
+	cleanFilter.SetInputConnection(stripperFilter.GetOutputPort())
+	cleanFilter.Update()
+	streamTube.SetInputConnection(cleanFilter.GetOutputPort())
+else:
+	streamTube.SetInputConnection(streamline.GetOutputPort())
+
 streamTube.SetInputArrayToProcess(1, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, "vectors")
 streamTube.SetRadius(0.2)
 streamTube.SetNumberOfSides(12)
 streamTube.SetVaryRadiusToVaryRadiusByVector()
+streamTube.Update()
 
 ##streamtube mapper
 mapStreamTube = vtk.vtkPolyDataMapper()
 mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
-mapStreamTube.SetLookupTable(lut)
+
+if grayscale:
+	lut = vtk.vtkLookupTable()
+	lut.SetHueRange(0.0, 0.0);
+	lut.SetSaturationRange(0.0, 0.0);
+	lut.SetValueRange(1.0, 0.0);
+	mapStreamTube.SetLookupTable(lut)
 
 ##streamtube actor
 streamTubeActor = vtk.vtkActor()
