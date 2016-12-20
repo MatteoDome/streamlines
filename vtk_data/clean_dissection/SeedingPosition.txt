@@ -1,0 +1,3 @@
+Point Source seeding
+Position: 	103, 158, 127
+Radius: 	10
