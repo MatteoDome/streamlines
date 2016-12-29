@@ -1,15 +1,15 @@
 import vtk
 import os
 
-# os.chdir("vtk_data\dissection")
-#os.chdir("vtk_data\synthetic")
-os.chdir("vtk_data\clean_dissection")
+# os.chdir("vtk_data/dissection")
+#os.chdir("vtk_data/synthetic")
+os.chdir("vtk_data/clean_dissection")
 
 #filename = "metrics_07.vti"
 #filename = "image_00.vti"
 filename = "metrics_00.vti"
 
-grayscale = True;
+grayscale = False;
 black_body_radiation = False;
 dissection_data = False#False;
 
@@ -110,6 +110,10 @@ streamTube.Update()
 ##streamtube mapper
 mapStreamTube = vtk.vtkPolyDataMapper()
 mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
+mapStreamTube.ScalarVisibilityOn()
+mapStreamTube.SetScalarRange(0, 1500)
+mapStreamTube.SetScalarModeToUsePointFieldData()
+mapStreamTube.ColorByArrayComponent("VelocityMagnitude", 0)
 
 ##LookupTable modification to get grayscale or black body radiaton
 if grayscale:

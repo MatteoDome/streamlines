@@ -11,8 +11,8 @@ os.chdir("vtk_data/test")
 #filename = "metrics_00.vti"
 filename = "density.vtk"
 
-grayscale = False;
-black_body_radiation = True;
+grayscale = True;
+black_body_radiation = False;
 
 #read file
 reader = vtk.vtkStructuredGridReader()
@@ -25,7 +25,7 @@ output = reader.GetOutput()
 #seed definition
 seeds = vtk.vtkPointSource()
 seeds.SetNumberOfPoints(100)
-seeds.SetRadius(3.0)
+seeds.SetRadius(.20)
 seeds.SetCenter(output.GetCenter())
 
 #streamtracer filter
@@ -36,17 +36,25 @@ streamtracer.SetMaximumPropagation(200)
 streamtracer.SetIntegrationDirectionToForward()
 streamtracer.SetComputeVorticity(True)
 
-#streamtracer mapper
-streamtracer_mapper = vtk.vtkPolyDataMapper()
-streamtracer_mapper.SetInputConnection(streamtracer.GetOutputPort())
-streamtracer_mapper.SetScalarRange(output.GetPointData().GetScalars().GetRange())
+streamTube = vtk.vtkTubeFilter()
+streamTube.SetInputConnection(streamtracer.GetOutputPort())
+streamTube.SetRadius(0.01)
+streamTube.SetNumberOfSides(12)
+streamTube.Update()
+
+##streamtube mapper
+mapStreamTube = vtk.vtkPolyDataMapper()
+mapStreamTube.SetInputConnection(streamTube.GetOutputPort())
+mapStreamTube.ScalarVisibilityOn()
+mapStreamTube.SetScalarRange(output.GetPointData().GetScalars().GetRange())
+mapStreamTube.SetScalarModeToUsePointFieldData()
 
 if grayscale:
 	lut = vtk.vtkLookupTable()
 	lut.SetHueRange(0.0, 0.0);
 	lut.SetSaturationRange(0.0, 0.0);
 	lut.SetValueRange(1.0, 0.0);
-	streamtracer_mapper.SetLookupTable(lut)
+	mapStreamTube.SetLookupTable(lut)
 elif black_body_radiation:
 	cmap = vtk.vtkDiscretizableColorTransferFunction()
 	cmap.SetColorSpaceToRGB()
@@ -64,22 +72,21 @@ elif black_body_radiation:
 
 	cmap.MapScalars(scalarValues, 0, -1)
 
-	streamtracer_mapper.SetLookupTable(cmap)
+	mapStreamTube.SetLookupTable(cmap)
 
 #streamtracer actor
-streamtracer_actor = vtk.vtkActor()
-streamtracer_actor.SetMapper(streamtracer_mapper)
-streamtracer_actor.VisibilityOn()
+streamTube_actor= vtk.vtkActor()
+streamTube_actor.SetMapper(mapStreamTube)
+streamTube_actor.VisibilityOn()
  
 ##rendering
 renderer = vtk.vtkRenderer()
+renderer.UseShadowsOff()
 
-renderer.AddActor(streamtracer_actor)
+renderer.AddActor(streamTube_actor)
 
 renderer.ResetCamera()
 renderer.SetBackground(.5,.5,.5);
-
-renderer.SetBackground(.5, .5, .9)
  
 renderWindow = vtk.vtkRenderWindow()
 renderWindow.AddRenderer(renderer)
