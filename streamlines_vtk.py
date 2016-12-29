@@ -1,18 +1,12 @@
 import vtk
 import os
 
-#os.chdir("vtk_data\dissection")
-#os.chdir("vtk_data\synthetic")
-#os.chdir("vtk_data\clean_dissection")
 os.chdir("vtk_data/test")
-
-#filename = "metrics_07.vti"
-#filename = "image_00.vti"
-#filename = "metrics_00.vti"
 filename = "density.vtk"
 
 grayscale = False;
-black_body_radiation = True;
+black_body_radiation = False;
+shadow_demo = True;
 
 #read file
 reader = vtk.vtkStructuredGridReader()
@@ -36,9 +30,20 @@ streamtracer.SetMaximumPropagation(200)
 streamtracer.SetIntegrationDirectionToForward()
 streamtracer.SetComputeVorticity(True)
 
-#streamtracer mapper
 streamtracer_mapper = vtk.vtkPolyDataMapper()
-streamtracer_mapper.SetInputConnection(streamtracer.GetOutputPort())
+
+if shadow_demo:
+	streamTube = vtk.vtkTubeFilter()
+	streamTube.SetInputConnection(streamtracer.GetOutputPort())
+	streamTube.SetRadius(0.01)
+	streamTube.SetNumberOfSides(12)
+	streamTube.Update()
+
+	streamtracer_mapper.SetInputConnection(streamTube.GetOutputPort())
+
+else:
+	streamtracer_mapper.SetInputConnection(streamtracer.GetOutputPort())
+
 streamtracer_mapper.SetScalarRange(output.GetPointData().GetScalars().GetRange())
 
 if grayscale:
